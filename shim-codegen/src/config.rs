@@ -1,12 +1,10 @@
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{Error, Expr, ExprArray, ExprLit, FieldValue, Lit, Member, Path, Result, Token};
+use syn::{Error, Expr, ExprLit, FieldValue, Lit, Member, Path, Result, Token};
 
 #[derive(Default)]
 pub struct Config {
     pub library: Option<String>,
-    pub include: Option<Vec<String>>,
-    pub exclude: Option<Vec<String>>,
     pub load: Option<Path>,
     pub unload: Option<Path>,
 }
@@ -28,36 +26,6 @@ impl Parse for Config {
                     };
 
                     config.library = Some(library.value());
-                }
-                "include" => {
-                    let Expr::Array(ExprArray { elems, .. }) = field.expr else {
-                        return Err(Error::new_spanned(field.expr, "include must be an array"));
-                    };
-
-                    let include = elems.into_iter().map(|elem| {
-                        let Expr::Lit(ExprLit { lit: Lit::Str(elem), .. }) = elem else {
-                            return Err(Error::new_spanned(elem, "include must be a string literal"));
-                        };
-
-                        Ok(elem.value())
-                    }).collect::<Result<Vec<_>>>()?;
-
-                    config.include = Some(include);
-                }
-                "exclude" => {
-                    let Expr::Array(ExprArray { elems, .. }) = field.expr else {
-                        return Err(Error::new_spanned(field.expr, "exclude must be an array"));
-                    };
-
-                    let exclude = elems.into_iter().map(|elem| {
-                        let Expr::Lit(ExprLit { lit: Lit::Str(elem), .. }) = elem else {
-                            return Err(Error::new_spanned(elem, "exclude must be a string literal"));
-                        };
-
-                        Ok(elem.value())
-                    }).collect::<Result<Vec<_>>>()?;
-
-                    config.exclude = Some(exclude);
                 }
                 "load" => {
                     let Expr::Path(path) = field.expr else {

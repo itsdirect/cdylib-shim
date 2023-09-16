@@ -1,7 +1,5 @@
 mod config;
 
-use std::collections::HashSet;
-
 use convert_case::{Case, Casing};
 use proc_macro::{Span, TokenStream};
 use quote::quote;
@@ -13,16 +11,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
     let config = parse_macro_input!(input as config::Config);
     let library_name = config.library.expect("library not specified");
     let library = Library::load_system(&library_name).expect("library not found");
-    let all_functions = library.all().expect("failed to get all exports");
-
-    let include = config.include.map(HashSet::<String>::from_iter);
-    let exclude = config.exclude.map(HashSet::<String>::from_iter);
-
-    let exported_functions: Vec<_> = all_functions
-        .iter()
-        .filter(|f| include.as_ref().map(|i| i.contains(*f)).unwrap_or(true))
-        .filter(|f| exclude.as_ref().map(|e| !e.contains(*f)).unwrap_or(true))
-        .collect();
+    let functions = library.all().expect("failed to get all exports");
 
     let load = config.load.map(|load| {
         quote! {
@@ -36,7 +25,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
         }
     });
 
-    let statics = all_functions.iter().map(|f| {
+    let statics = functions.iter().map(|f| {
         let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
 
         quote! {
@@ -44,7 +33,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
         }
     });
 
-    let exports = exported_functions.iter().map(|f| {
+    let exports = functions.iter().map(|f| {
         let name = Ident::new(f.as_str(), Span::call_site().into());
         let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
 
@@ -57,7 +46,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
         }
     });
 
-    let load_statics = all_functions.iter().map(|f| {
+    let load_statics = functions.iter().map(|f| {
         let name = f.as_str();
         let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
 
