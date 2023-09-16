@@ -1,17 +1,27 @@
 mod config;
 
-use convert_case::{Case, Casing};
-use proc_macro::{Span, TokenStream};
+use std::collections::HashSet;
+
+use proc_macro::TokenStream;
 use quote::quote;
 use shim_core::Library;
-use syn::{parse_macro_input, Ident};
+use syn::{parse_macro_input, TypeBareFn};
 
 #[proc_macro]
 pub fn shim(input: TokenStream) -> TokenStream {
     let config = parse_macro_input!(input as config::Config);
     let library_name = config.library.expect("library not specified");
+    let functions = config.functions.expect("functions not specified");
     let library = Library::load_system(&library_name).expect("library not found");
-    let functions = library.all().expect("failed to get all exports");
+    let all_functions = library.all().expect("failed to get all exports");
+
+    let defined_functions = HashSet::<String>::from_iter(functions.iter().map(|f| f.0.to_string()));
+
+    for function in all_functions.iter() {
+        if !defined_functions.contains(function.as_str()) {
+            panic!("function {} not defined", function);
+        }
+    }
 
     let load = config.load.map(|load| {
         quote! {
@@ -25,66 +35,83 @@ pub fn shim(input: TokenStream) -> TokenStream {
         }
     });
 
-    let statics = functions.iter().map(|f| {
-        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
-
+    let container_functions = functions.iter().map(|(ident, bare_fn)| {
         quote! {
-            pub static mut #static_name: usize = 0;
+            #ident: #bare_fn
         }
     });
 
-    let exports = functions.iter().map(|f| {
-        let name = Ident::new(f.as_str(), Span::call_site().into());
-        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
+    let load_functions = functions.iter().map(|(ident, _)| {
+        let name = ident.to_string();
+
+        quote! {
+            #ident: library.get(#name)?,
+        }
+    });
+
+    let container = quote! {
+        struct Functions {
+            #(#container_functions),*
+        }
+
+        impl Functions {
+            unsafe fn load() -> Option<Self> {
+                let library = shim::Library::load_system(#library_name)?;
+
+                let functions = Self {
+                    #(#load_functions)*
+                };
+
+                Some(functions)
+            }
+        }
+
+        static FUNCTIONS: Lazy<Functions> = Lazy::new(|| unsafe {
+            Functions::load().unwrap()
+        });
+    };
+
+    let exports = functions.iter().map(|(ident, bare_fn)| {
+        let TypeBareFn {
+            unsafety,
+            abi,
+            inputs,
+            output,
+            ..
+        } = bare_fn;
+
+        let args = inputs
+            .iter()
+            .filter_map(|a| a.name.as_ref())
+            .map(|(i, _)| i);
 
         quote! {
             #[no_mangle]
-            #[naked]
-            unsafe extern "C" fn #name() {
-                std::arch::asm!("jmp [rip + {}]", sym #static_name, options(noreturn))
+            #unsafety #abi fn #ident(#inputs) #output {
+                (FUNCTIONS.#ident)(#(#args),*)
             }
-        }
-    });
-
-    let load_statics = functions.iter().map(|f| {
-        let name = f.as_str();
-        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
-
-        quote! {
-            #static_name = library.get(#name)?;
         }
     });
 
     let expanded = quote! {
-        mod exports {
-            #(#statics)*
-            #(#exports)*
+        use shim::entry::*;
 
-            fn load() -> Option<()> {
-                unsafe {
-                    let library = shim::Library::load_system(#library_name)?;
-                    #(#load_statics)*
-                    Some(())
+        #container
+        #(#exports)*
+
+        #[no_mangle]
+        extern "system" fn DllMain(_: HINSTANCE, fdwReason: DWORD, _: LPVOID) -> BOOL {
+            match fdwReason {
+                DLL_PROCESS_ATTACH => {
+                    #load
                 }
+                DLL_PROCESS_DETACH => {
+                    #unload
+                }
+                _ => {}
             }
 
-            use shim::entry::*;
-
-            #[no_mangle]
-            extern "system" fn DllMain(_: HINSTANCE, fdwReason: DWORD, _: LPVOID) -> BOOL {
-                match fdwReason {
-                    DLL_PROCESS_ATTACH => {
-                        super::exports::load().unwrap();
-                        #load
-                    }
-                    DLL_PROCESS_DETACH => {
-                        #unload
-                    }
-                    _ => {}
-                }
-
-                TRUE
-            }
+            TRUE
         }
     };
 
