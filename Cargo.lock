@@ -31,6 +31,7 @@ name = "shim"
 version = "0.1.0"
 dependencies = [
  "shim-codegen",
+ "shim-core",
  "widestring",
  "winapi",
 ]
@@ -41,7 +42,16 @@ version = "0.1.0"
 dependencies = [
  "convert_case",
  "quote",
+ "shim-core",
  "syn",
+ "widestring",
+ "winapi",
+]
+
+[[package]]
+name = "shim-core"
+version = "0.1.0"
+dependencies = [
  "widestring",
  "winapi",
 ]

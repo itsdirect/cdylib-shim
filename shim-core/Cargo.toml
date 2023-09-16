@@ -1,10 +1,8 @@
 [package]
-name = "shim"
+name = "shim-core"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 widestring = "0.5.1"
 winapi = { version = "0.3.9", features = ["sysinfoapi", "libloaderapi"] }
-shim-codegen = { path = "../shim-codegen" }
-shim-core = { path = "../shim-core" }
