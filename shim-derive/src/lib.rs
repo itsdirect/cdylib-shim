@@ -1,6 +1,7 @@
 mod library;
 
 use crate::library::Library;
+use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::spanned::Spanned;
@@ -13,7 +14,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
     let functions = library.all();
 
     let statics = functions.iter().map(|f| {
-        let static_name = Ident::new(&format!("{}_PTR", f), library_name.span());
+        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), library_name.span());
 
         quote! {
             static mut #static_name: usize = 0;
@@ -22,7 +23,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
 
     let exports = functions.iter().map(|f| {
         let name = Ident::new(f.as_str(), library_name.span());
-        let static_name = Ident::new(&format!("{}_PTR", f), library_name.span());
+        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), library_name.span());
 
         quote! {
             #[no_mangle]
@@ -35,7 +36,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
 
     let load_statics = functions.iter().map(|f| {
         let name = f.as_str();
-        let static_name = Ident::new(&format!("{}_PTR", f), library_name.span());
+        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), library_name.span());
 
         quote! {
             #static_name = library.get(#name)?;
@@ -62,7 +63,7 @@ pub fn shim(input: TokenStream) -> TokenStream {
             #[no_mangle]
             extern "system" fn DllMain(_: HINSTANCE, fdwReason: DWORD, _: LPVOID) -> BOOL {
                 match fdwReason {
-                    DLL_PROCESS_ATTACH => crate::exports::load().unwrap(),
+                    DLL_PROCESS_ATTACH => super::exports::load().unwrap(),
                     _ => {}
                 }
 
