@@ -21,22 +21,21 @@ pub fn shim(input: TokenStream) -> TokenStream {
 
     let exported_functions: Vec<_> = all_functions
         .iter()
-        .filter(|f| {
-            if let Some(include) = &include {
-                if !include.contains(*f) {
-                    return false;
-                }
-            }
-
-            if let Some(exclude) = &exclude {
-                if exclude.contains(*f) {
-                    return false;
-                }
-            }
-
-            true
-        })
+        .filter(|f| include.as_ref().map(|i| !i.contains(*f)).unwrap_or(true))
+        .filter(|f| exclude.as_ref().map(|e| e.contains(*f)).unwrap_or(true))
         .collect();
+
+    let load = config.load.map(|load| {
+        quote! {
+            #load();
+        }
+    });
+
+    let unload = config.unload.map(|load| {
+        quote! {
+            #load();
+        }
+    });
 
     let statics = all_functions.iter().map(|f| {
         let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
@@ -86,7 +85,13 @@ pub fn shim(input: TokenStream) -> TokenStream {
             #[no_mangle]
             extern "system" fn DllMain(_: HINSTANCE, fdwReason: DWORD, _: LPVOID) -> BOOL {
                 match fdwReason {
-                    DLL_PROCESS_ATTACH => super::exports::load().unwrap(),
+                    DLL_PROCESS_ATTACH => {
+                        super::exports::load().unwrap();
+                        #load
+                    }
+                    DLL_PROCESS_DETACH => {
+                        #unload
+                    }
                     _ => {}
                 }
 

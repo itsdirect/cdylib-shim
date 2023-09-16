@@ -1,12 +1,14 @@
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{Error, Expr, ExprArray, ExprLit, FieldValue, Lit, Member, Result, Token};
+use syn::{Error, Expr, ExprArray, ExprLit, FieldValue, Lit, Member, Path, Result, Token};
 
 #[derive(Default)]
 pub struct Config {
     pub library: Option<String>,
     pub include: Option<Vec<String>>,
     pub exclude: Option<Vec<String>>,
+    pub load: Option<Path>,
+    pub unload: Option<Path>,
 }
 
 impl Parse for Config {
@@ -56,6 +58,20 @@ impl Parse for Config {
                     }).collect::<Result<Vec<_>>>()?;
 
                     config.exclude = Some(exclude);
+                }
+                "load" => {
+                    let Expr::Path(path) = field.expr else {
+                        return Err(Error::new_spanned(field.expr, "load must be a path"));
+                    };
+
+                    config.load = Some(path.path);
+                }
+                "unload" => {
+                    let Expr::Path(path) = field.expr else {
+                        return Err(Error::new_spanned(field.expr, "unload must be a path"));
+                    };
+
+                    config.unload = Some(path.path);
                 }
                 _ => {
                     return Err(Error::new_spanned(name, "unknown field"));
