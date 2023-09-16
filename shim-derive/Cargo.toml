@@ -9,6 +9,6 @@ proc-macro = true
 [dependencies]
 convert_case = "0.5.0"
 quote = "1.0.18"
-syn = { version = "1.0.91", features = ["extra-traits"] }
+syn = { version = "1.0.91", features = ["full"] }
 widestring = "0.5.1"
 winapi = { version = "0.3.9", features = ["sysinfoapi", "libloaderapi"] }

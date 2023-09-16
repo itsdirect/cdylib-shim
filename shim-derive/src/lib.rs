@@ -1,29 +1,54 @@
+mod config;
 mod library;
+
+use std::collections::HashSet;
 
 use crate::library::Library;
 use convert_case::{Case, Casing};
-use proc_macro::TokenStream;
+use proc_macro::{Span, TokenStream};
 use quote::quote;
-use syn::spanned::Spanned;
-use syn::{parse_macro_input, Ident, LitStr};
+use syn::{parse_macro_input, Ident};
 
 #[proc_macro]
 pub fn shim(input: TokenStream) -> TokenStream {
-    let library_name = parse_macro_input!(input as LitStr).value();
-    let library = Library::load_system(library_name.as_str()).expect("library not found");
-    let functions = library.all();
+    let config = parse_macro_input!(input as config::Config);
+    let library_name = config.library.expect("library not specified");
+    let library = Library::load_system(&library_name).expect("library not found");
+    let all_functions = library.all();
 
-    let statics = functions.iter().map(|f| {
-        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), library_name.span());
+    let include = config.include.map(HashSet::<String>::from_iter);
+    let exclude = config.exclude.map(HashSet::<String>::from_iter);
+
+    let exported_functions: Vec<_> = all_functions
+        .iter()
+        .filter(|f| {
+            if let Some(include) = &include {
+                if !include.contains(*f) {
+                    return false;
+                }
+            }
+
+            if let Some(exclude) = &exclude {
+                if exclude.contains(*f) {
+                    return false;
+                }
+            }
+
+            true
+        })
+        .collect();
+
+    let statics = all_functions.iter().map(|f| {
+        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
 
         quote! {
-            static mut #static_name: usize = 0;
+            pub static mut #static_name: usize = 0;
         }
     });
 
-    let exports = functions.iter().map(|f| {
-        let name = Ident::new(f.as_str(), library_name.span());
-        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), library_name.span());
+    let exports = exported_functions.iter().map(|f| {
+        let name = Ident::new(f.as_str(), Span::call_site().into());
+        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
 
         quote! {
             #[no_mangle]
@@ -34,9 +59,9 @@ pub fn shim(input: TokenStream) -> TokenStream {
         }
     });
 
-    let load_statics = functions.iter().map(|f| {
+    let load_statics = all_functions.iter().map(|f| {
         let name = f.as_str();
-        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), library_name.span());
+        let static_name = Ident::new(&f.to_case(Case::ScreamingSnake), Span::call_site().into());
 
         quote! {
             #static_name = library.get(#name)?;
@@ -48,16 +73,14 @@ pub fn shim(input: TokenStream) -> TokenStream {
             #(#statics)*
             #(#exports)*
 
-            pub fn load() -> Option<()> {
+            fn load() -> Option<()> {
                 unsafe {
                     let library = shim::Library::load_system(#library_name)?;
                     #(#load_statics)*
                     Some(())
                 }
             }
-        }
 
-        mod entry {
             use shim::entry::*;
 
             #[no_mangle]
