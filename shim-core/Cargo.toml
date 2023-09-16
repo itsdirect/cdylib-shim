@@ -4,5 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+object = "0.32.1"
 widestring = "0.5.1"
-winapi = { version = "0.3.9", features = ["sysinfoapi", "libloaderapi"] }
+winapi = { version = "0.3.9", features = [
+    "libloaderapi",
+    "processthreadsapi",
+    "psapi",
+    "sysinfoapi",
+] }
