@@ -1,3 +1,6 @@
+pub use once_cell::sync::Lazy;
+pub use shim_derive::Shim;
+
 use std::ffi::CString;
 use std::mem::transmute_copy;
 use std::path::{Path, PathBuf};

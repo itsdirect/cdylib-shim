@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "shim",
-    "shim-derive"
+    "shim-derive",
+    "version"
 ]
