@@ -3,12 +3,6 @@
 version = 3
 
 [[package]]
-name = "once_cell"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87f3e037eac156d1775da914196f0f37741a274155e34a0b7e427c35d2a2ecb9"
-
-[[package]]
 name = "proc-macro2"
 version = "1.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -30,7 +24,6 @@ dependencies = [
 name = "shim"
 version = "0.1.0"
 dependencies = [
- "once_cell",
  "shim-derive",
  "widestring",
  "winapi",
@@ -42,6 +35,8 @@ version = "0.1.0"
 dependencies = [
  "quote",
  "syn",
+ "widestring",
+ "winapi",
 ]
 
 [[package]]
