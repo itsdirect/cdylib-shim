@@ -6,4 +6,4 @@ edition = "2021"
 [dependencies]
 widestring = "0.5.1"
 winapi = { version = "0.3.9", features = ["sysinfoapi", "libloaderapi"] }
-shim-derive = { path = "../shim-derive" }
+shim-codegen = { path = "../shim-codegen" }

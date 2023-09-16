@@ -30,13 +30,13 @@ dependencies = [
 name = "shim"
 version = "0.1.0"
 dependencies = [
- "shim-derive",
+ "shim-codegen",
  "widestring",
  "winapi",
 ]
 
 [[package]]
-name = "shim-derive"
+name = "shim-codegen"
 version = "0.1.0"
 dependencies = [
  "convert_case",

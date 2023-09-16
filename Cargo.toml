@@ -1,6 +1,2 @@
 [workspace]
-members = [
-    "shim",
-    "shim-derive",
-    "version"
-]
+members = ["shim", "shim-codegen", "version"]
