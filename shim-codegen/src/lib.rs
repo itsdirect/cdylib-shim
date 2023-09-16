@@ -12,11 +12,8 @@ use syn::{parse_macro_input, Ident};
 pub fn shim(input: TokenStream) -> TokenStream {
     let config = parse_macro_input!(input as config::Config);
     let library_name = config.library.expect("library not specified");
-
-    let all_functions = unsafe {
-        let library = Library::load_system(&library_name).expect("library not found");
-        library.all()
-    };
+    let library = Library::load_system(&library_name).expect("library not found");
+    let all_functions = library.all();
 
     let include = config.include.map(HashSet::<String>::from_iter);
     let exclude = config.exclude.map(HashSet::<String>::from_iter);
