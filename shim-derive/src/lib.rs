@@ -21,8 +21,8 @@ pub fn shim(input: TokenStream) -> TokenStream {
 
     let exported_functions: Vec<_> = all_functions
         .iter()
-        .filter(|f| include.as_ref().map(|i| !i.contains(*f)).unwrap_or(true))
-        .filter(|f| exclude.as_ref().map(|e| e.contains(*f)).unwrap_or(true))
+        .filter(|f| include.as_ref().map(|i| i.contains(*f)).unwrap_or(true))
+        .filter(|f| exclude.as_ref().map(|e| !e.contains(*f)).unwrap_or(true))
         .collect();
 
     let load = config.load.map(|load| {
