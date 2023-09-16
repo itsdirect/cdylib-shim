@@ -11,9 +11,7 @@ use winapi::um::winnt::{
     PIMAGE_EXPORT_DIRECTORY, PIMAGE_NT_HEADERS,
 };
 
-pub struct Library {
-    handle: HMODULE,
-}
+pub struct Library(HMODULE);
 
 impl Library {
     pub fn load_system<P: AsRef<Path>>(path: P) -> Option<Self> {
@@ -41,13 +39,13 @@ impl Library {
                 return None;
             }
 
-            Some(Self { handle })
+            Some(Self(handle))
         }
     }
 
     pub fn all(&self) -> Vec<String> {
         unsafe {
-            let base = self.handle as usize;
+            let base = self.0 as usize;
             let dos_header = &*(base as PIMAGE_DOS_HEADER);
             assert!(dos_header.e_magic == IMAGE_DOS_SIGNATURE);
             let nt_headers = &*((base + dos_header.e_lfanew as usize) as PIMAGE_NT_HEADERS);
@@ -74,7 +72,7 @@ impl Library {
     /// # Safety
     pub unsafe fn get<T>(&self, name: &str) -> Option<T> {
         let owned_name = CString::new(name).ok()?;
-        let address = GetProcAddress(self.handle, owned_name.as_ptr());
+        let address = GetProcAddress(self.0, owned_name.as_ptr());
 
         if address.is_null() {
             return None;
