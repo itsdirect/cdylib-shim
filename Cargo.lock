@@ -33,6 +33,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "either"
+version = "1.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
+
+[[package]]
 name = "flate2"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -40,6 +46,15 @@ checksum = "11faaf5a5236997af9848be0bef4db95824b1d534ebc64d0f0c6cf3e67bd38dc"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
+]
+
+[[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
 ]
 
 [[package]]
@@ -99,8 +114,8 @@ dependencies = [
 name = "shim"
 version = "0.1.0"
 dependencies = [
- "object",
  "shim-macros",
+ "winapi",
 ]
 
 [[package]]
@@ -108,9 +123,11 @@ name = "shim-macros"
 version = "0.1.0"
 dependencies = [
  "convert_case",
+ "itertools",
+ "object",
+ "proc-macro2",
  "quote",
  "syn",
- "winapi",
 ]
 
 [[package]]
@@ -157,6 +174,7 @@ name = "version"
 version = "0.1.0"
 dependencies = [
  "shim",
+ "winapi",
 ]
 
 [[package]]

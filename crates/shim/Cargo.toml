@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-object = "0.36.7"
 shim-macros = { path = "../shim-macros" }
+
+[dependencies.winapi]
+version = "0.3.9"
+features = ["sysinfoapi", "libloaderapi"]

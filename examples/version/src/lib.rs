@@ -1,17 +1,46 @@
+#![feature(naked_functions)]
+
 #[shim::shim("version.dll")]
 mod version {
-    #[load]
-    fn load() {
-        println!("Loading");
+    use std::{
+        fs::File,
+        io::Write,
+        sync::{LazyLock, Mutex},
+    };
+
+    use winapi::shared::{
+        minwindef::{BOOL, DWORD, LPVOID},
+        ntdef::LPCSTR,
+    };
+
+    struct Logger(Mutex<File>);
+
+    impl Logger {
+        fn new(name: &str) -> Self {
+            Self(Mutex::new(File::create(name).unwrap()))
+        }
+
+        fn log(&self, message: &str) {
+            let mut file = self.0.lock().unwrap();
+            writeln!(file, "{}", message).unwrap();
+        }
     }
 
-    #[unload]
-    fn unload() {
-        println!("Unloading");
+    static LOGGER: LazyLock<Logger> = LazyLock::new(|| Logger::new("version.txt"));
+
+    #[init]
+    fn init() {
+        LOGGER.log("Hello from init!");
     }
 
     #[hook]
-    unsafe extern "system" fn GetFileVersionInfoA() {
-        println!("GetFileVersionInfoA");
+    unsafe extern "system" fn GetFileVersionInfoA(
+        lptstrFileName: LPCSTR,
+        dwHandle: DWORD,
+        dwLen: DWORD,
+        lpData: LPVOID,
+    ) -> BOOL {
+        LOGGER.log("Hello from GetFileVersionInfoA!");
+        unsafe { original::GetFileVersionInfoA(lptstrFileName, dwHandle, dwLen, lpData) }
     }
 }
