@@ -1,6 +1,8 @@
 #![feature(naked_functions)]
 
-#[shim::shim("version.dll")]
+use cdylib_shim::shim;
+
+#[shim("version.dll")]
 mod version {
     use std::{
         fs::File,

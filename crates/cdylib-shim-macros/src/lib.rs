@@ -302,8 +302,8 @@ impl ToTokens for LoadLibraryFn<'_> {
         tokens.extend(quote! {
             fn #ident() {
                 unsafe {
-                    static mut LIBRARY: Option<shim::__private::Library> = None;
-                    let library = LIBRARY.insert(shim::__private::Library::load_system(#library_name).unwrap());
+                    static mut LIBRARY: Option<cdylib_shim::__private::Library> = None;
+                    let library = LIBRARY.insert(cdylib_shim::__private::Library::load_system(#library_name).unwrap());
                     #(#load_exports)*
                 }
             }

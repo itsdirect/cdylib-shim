@@ -1,10 +1,10 @@
 [package]
-name = "shim"
+name = "cdylib-shim"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-shim-macros = { path = "../shim-macros" }
+cdylib-shim-macros = { path = "../cdylib-shim-macros" }
 
 [dependencies.winapi]
 version = "0.3.9"

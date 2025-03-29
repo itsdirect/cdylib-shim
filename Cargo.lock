@@ -9,6 +9,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
+name = "cdylib-shim"
+version = "0.1.0"
+dependencies = [
+ "cdylib-shim-macros",
+ "winapi",
+]
+
+[[package]]
+name = "cdylib-shim-macros"
+version = "0.1.0"
+dependencies = [
+ "convert_case",
+ "itertools",
+ "object",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -111,26 +131,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shim"
-version = "0.1.0"
-dependencies = [
- "shim-macros",
- "winapi",
-]
-
-[[package]]
-name = "shim-macros"
-version = "0.1.0"
-dependencies = [
- "convert_case",
- "itertools",
- "object",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -173,7 +173,7 @@ checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 name = "version"
 version = "0.1.0"
 dependencies = [
- "shim",
+ "cdylib-shim",
  "winapi",
 ]
 
