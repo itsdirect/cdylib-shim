@@ -2,6 +2,7 @@
 name = "cdylib-shim"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 cdylib-shim-macros = { path = "../cdylib-shim-macros" }
