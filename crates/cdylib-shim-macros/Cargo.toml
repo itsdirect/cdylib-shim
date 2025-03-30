@@ -1,6 +1,6 @@
 [package]
 name = "cdylib-shim-macros"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["direct <github@itsdirect.dev>"]
 edition = "2024"
 description = "A macro for creating dynamic library shims that can intercept and modify function calls"
