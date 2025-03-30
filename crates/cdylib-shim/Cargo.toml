@@ -9,8 +9,8 @@ repository = "https://github.com/itsdirect/cdylib-shim"
 readme = "../../README.md"
 
 [dependencies]
-cdylib-shim-macros = { version = "0.1.0", path = "../cdylib-shim-macros" }
+libloading = "0.8.6"
 
-[dependencies.winapi]
-version = "0.3.9"
-features = ["sysinfoapi", "libloaderapi"]
+[dependencies.cdylib-shim-macros]
+version = "0.1.0"
+path = "../cdylib-shim-macros"

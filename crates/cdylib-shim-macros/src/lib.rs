@@ -296,14 +296,19 @@ impl ToTokens for LoadLibraryFn<'_> {
         let load_exports = self.library.exports.iter().map(|export| {
             let address_ident = export.address().ident(Span::call_site());
             let export_name = export.lit_str(Span::call_site());
-            quote! { #address_ident = library.get(#export_name).unwrap().addr().get(); }
+
+            quote! {
+                #address_ident = *library.get::<usize>(#export_name.as_bytes()).unwrap();
+            }
         });
 
         tokens.extend(quote! {
             fn #ident() {
                 unsafe {
+                    let mut path = cdylib_shim::__private::system_dir().expect("should exist");
+                    path.push(#library_name);
                     static mut LIBRARY: Option<cdylib_shim::__private::Library> = None;
-                    let library = LIBRARY.insert(cdylib_shim::__private::Library::load_system(#library_name).unwrap());
+                    let library = LIBRARY.insert(cdylib_shim::__private::Library::new(path).unwrap());
                     #(#load_exports)*
                 }
             }
