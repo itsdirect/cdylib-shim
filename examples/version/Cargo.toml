@@ -1,0 +1,15 @@
+[package]
+name = "version"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
+
+[dependencies.cdylib-shim]
+path = "../../crates/cdylib-shim"

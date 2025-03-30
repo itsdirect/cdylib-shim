@@ -23,11 +23,9 @@
 ///
 /// #[shim("version.dll")]
 /// mod version {
-///     use std::fs::File;
-///
-///     use winapi::shared::{
-///         minwindef::{BOOL, DWORD, LPVOID},
-///         ntdef::LPCSTR,
+///     use std::{
+///         ffi::{c_char, c_int, c_ulong, c_void},
+///         fs::File,
 ///     };
 ///
 ///     #[init]
@@ -42,11 +40,11 @@
 ///
 ///     #[hook]
 ///     unsafe extern "system" fn GetFileVersionInfoA(
-///         lptstrFileName: LPCSTR,
-///         dwHandle: DWORD,
-///         dwLen: DWORD,
-///         lpData: LPVOID,
-///     ) -> BOOL {
+///         lptstrFileName: *const c_char,
+///         dwHandle: c_ulong,
+///         dwLen: c_ulong,
+///         lpData: *const c_void,
+///     ) -> c_int {
 ///         tracing::info!("Hello from GetFileVersionInfoA!");
 ///         unsafe { original::GetFileVersionInfoA(lptstrFileName, dwHandle, dwLen, lpData) }
 ///     }
