@@ -6,6 +6,7 @@ edition = "2024"
 description = "A macro for creating dynamic library shims that can intercept and modify function calls"
 license = "MIT"
 repository = "https://github.com/itsdirect/cdylib-shim"
+rust-version = "1.88"
 
 [lib]
 proc-macro = true
