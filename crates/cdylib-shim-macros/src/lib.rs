@@ -264,7 +264,7 @@ impl ToTokens for ShimFn<'_> {
         let address_ident = self.export.address().ident(Span::call_site());
 
         tokens.extend(quote! {
-            #[naked]
+            #[unsafe(naked)]
             #[unsafe(no_mangle)]
             unsafe extern "system" fn #ident() {
                 std::arch::naked_asm!("jmp [rip + {}]", sym #address_ident)

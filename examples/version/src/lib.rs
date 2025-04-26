@@ -1,5 +1,3 @@
-#![feature(naked_functions)]
-
 use cdylib_shim::shim;
 
 #[shim("version.dll")]
